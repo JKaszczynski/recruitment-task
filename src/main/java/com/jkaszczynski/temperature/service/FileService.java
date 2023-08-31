@@ -9,13 +9,15 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 @Slf4j
 public class FileService {
 
-    @Value("${kyotu.temperature.file-path}")
+    @Value("${kyotu.temperature.file.path}")
     private String filePath;
 
     public Map<String, YearlyData> readTemperatureData(String city) {
@@ -57,6 +59,28 @@ public class FileService {
     public Long getLastModified() {
         File file = new File(filePath);
         return file.lastModified();
+    }
+
+    public Set<String> getAllCitiesFromFile() {
+        Set<String> cities = new HashSet<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                readLine(line, cities);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error with reading temperature data file: " + e.getMessage());
+        }
+        return cities;
+    }
+
+    private void readLine(String line, Set<String> cities) {
+        try {
+            String[] fields = line.split(";");
+            cities.add(fields[0]);
+        } catch (Exception e) {
+            log.warn("Could not read malformed line: " + e.getMessage());
+        }
     }
 
     public record YearlyData(double temperatureSum, int days) {
