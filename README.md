@@ -1,3 +1,5 @@
+App starts at port 8080.
+
 There's an endpoint in the app under path: "api/temperature/average/{city}".
 The endpoint returns the yearly average temperatures for a given city in the format array of objects with the following fields: year, averageTemperature.
 
