@@ -1,6 +1,6 @@
-package com.jkaszczynski.temperature.controller;
+package com.jkaszczynski.temperature.api;
 
-import com.jkaszczynski.temperature.controller.dto.AverageTemperatureDto;
+import com.jkaszczynski.temperature.api.dto.AverageTemperatureDto;
 import com.jkaszczynski.temperature.service.TemperatureFacade;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;

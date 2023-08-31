@@ -1,7 +1,5 @@
 package com.jkaszczynski.temperature.service;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -28,7 +26,7 @@ public class FileService {
                 readLine(line, city, temperatureByYear);
             }
         } catch (IOException e) {
-            throw new RuntimeException("Error with reading temperature data file");
+            throw new RuntimeException("Error with reading temperature data file: " + e.getMessage());
         }
         return temperatureByYear;
     }
@@ -53,9 +51,7 @@ public class FileService {
     }
 
     private YearlyData updateYearlyData(YearlyData yearlyData, double temperature) {
-        yearlyData.setTemperatureSum(yearlyData.getTemperatureSum() + temperature);
-        yearlyData.setDays(yearlyData.getDays() + 1);
-        return yearlyData;
+        return new YearlyData(yearlyData.temperatureSum() + temperature, yearlyData.days() + 1);
     }
 
     public Long getLastModified() {
@@ -63,10 +59,6 @@ public class FileService {
         return file.lastModified();
     }
 
-    @Data
-    @AllArgsConstructor
-    public static class YearlyData {
-        private double temperatureSum;
-        private int days;
+    public record YearlyData(double temperatureSum, int days) {
     }
 }

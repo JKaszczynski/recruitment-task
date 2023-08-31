@@ -1,11 +1,13 @@
 package com.jkaszczynski.temperature.service;
 
 import com.jkaszczynski.configuration.CacheConfig;
-import com.jkaszczynski.temperature.controller.dto.AverageTemperatureDto;
+import com.jkaszczynski.temperature.api.dto.AverageTemperatureDto;
 import lombok.AllArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,6 +27,9 @@ public class TemperatureService {
     }
 
     private AverageTemperatureDto calculateAverageTemperature(FileService.YearlyData yearlyData, String key) {
-        return new AverageTemperatureDto(key, yearlyData.getTemperatureSum() / yearlyData.getDays());
+        double averageTemperature = BigDecimal.valueOf(yearlyData.temperatureSum() / yearlyData.days())
+                .setScale(2, RoundingMode.HALF_UP)
+                .doubleValue();
+        return new AverageTemperatureDto(key, averageTemperature);
     }
 }
