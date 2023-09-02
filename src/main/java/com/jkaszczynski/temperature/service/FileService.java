@@ -9,9 +9,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 @Service
 @Slf4j
@@ -20,26 +18,25 @@ public class FileService {
     @Value("${kyotu.temperature.file.path}")
     private String filePath;
 
-    public Map<String, YearlyData> readTemperatureData(String city) {
-        Map<String, YearlyData> temperatureByYear = new HashMap<>();
+    public Map<String, CityTemperatureData> readTemperatureData() {
+        Map<String, CityTemperatureData> citiesTemperatures = new HashMap<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                readLine(line, city, temperatureByYear);
+                readLine(line, citiesTemperatures);
             }
         } catch (IOException e) {
             throw new RuntimeException("Error with reading temperature data file: " + e.getMessage());
         }
-        return temperatureByYear;
+        return citiesTemperatures;
     }
 
-    private void readLine(String line, String city, Map<String, YearlyData> temperatureByYear) {
+    private void readLine(String line, Map<String, CityTemperatureData> temperatureByYear) {
         try {
             String[] fields = line.split(";");
-            String cityInRecord = fields[0];
-            if (city.equals(cityInRecord)) {
-                updateTemperatureData(fields, temperatureByYear);
-            }
+            String city = fields[0];
+            temperatureByYear.computeIfAbsent(city, (__) -> new CityTemperatureData(new HashMap<>()));
+            updateTemperatureData(fields, temperatureByYear.get(city).temperatureByYear());
         } catch (Exception e) {
             log.warn("Could not read malformed line: " + e.getMessage());
         }
@@ -56,31 +53,12 @@ public class FileService {
         return new YearlyData(yearlyData.temperatureSum() + temperature, yearlyData.days() + 1);
     }
 
-    public Long getLastModified() {
+    public long getLastModified() {
         File file = new File(filePath);
         return file.lastModified();
     }
 
-    public Set<String> getAllCitiesFromFile() {
-        Set<String> cities = new HashSet<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                readLine(line, cities);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Error with reading temperature data file: " + e.getMessage());
-        }
-        return cities;
-    }
-
-    private void readLine(String line, Set<String> cities) {
-        try {
-            String[] fields = line.split(";");
-            cities.add(fields[0]);
-        } catch (Exception e) {
-            log.warn("Could not read malformed line: " + e.getMessage());
-        }
+    public record CityTemperatureData(Map<String, YearlyData> temperatureByYear) {
     }
 
     public record YearlyData(double temperatureSum, int days) {
