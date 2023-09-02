@@ -1,7 +1,8 @@
 package com.jkaszczynski.temperature.service
 
-
 import com.jkaszczynski.configuration.CacheConfig
+import com.jkaszczynski.temperature.api.dto.AverageTemperatureDto
+import com.jkaszczynski.temperature.handler.CacheHandler
 import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -19,6 +20,9 @@ class TemperatureServiceTest extends Specification {
     TemperatureService temperatureService
 
     @SpringBean
+    CacheHandler cacheHandler = Mock()
+
+    @SpringBean
     FileService fileService = Mock()
 
     @Autowired
@@ -28,37 +32,39 @@ class TemperatureServiceTest extends Specification {
         cacheManager.getCache(CacheConfig.TEMPERATURE_CACHE).clear()
     }
 
-    def "should return properly calculated list of yearly average temperatures"() {
+    def "should properly cache data with list of cities with yearly average temperatures"() {
         given:
-        Map<String, FileService.YearlyData> temperatureData = new HashMap<>()
-        temperatureData.put("2020", new FileService.YearlyData(10, 2))
-        fileService.readTemperatureData(_ as String) >> temperatureData
+        Map<String, FileService.CityTemperatureData> cityData = new HashMap<>()
+        Map<String, FileService.YearlyData> yearlyData = new HashMap<>()
+        yearlyData.put("2020", new FileService.YearlyData(10, 2))
+        cityData.put("Warszawa", new FileService.CityTemperatureData(yearlyData))
+        fileService.readTemperatureData() >> cityData
 
         when:
-        def response = temperatureService.getAverageTemperature("Warszawa")
+        temperatureService.populateCache()
 
         then:
-        response
-        response.size() > 0
+        cacheManager.getCache(CacheConfig.TEMPERATURE_CACHE)
+        cacheManager.getCache(CacheConfig.TEMPERATURE_CACHE).get("Warszawa")
 
         and:
-        response.get(0).averageTemperature() == 5
+        def cache = cacheManager.getCache(CacheConfig.TEMPERATURE_CACHE).get("Warszawa").get() as List<AverageTemperatureDto>
+        cache.get(0).year() == "2020"
+        cache.get(0).averageTemperature() == 5
+
     }
 
     def "should take data from cache"() {
         given:
-        Map<String, FileService.YearlyData> temperatureData = new HashMap<>()
-        temperatureData.put("2020", new FileService.YearlyData(10, 2))
-        fileService.readTemperatureData(_ as String) >> temperatureData
-
-        and:
         String city = "Warszawa"
 
+        and:
+        cacheManager.getCache(CacheConfig.TEMPERATURE_CACHE).put(city, List.of(new AverageTemperatureDto("2020", 10.3)))
+
         when:
-        temperatureService.getAverageTemperature(city)
-        temperatureService.getAverageTemperature(city)
+        def response = temperatureService.getAverageTemperature(city)
 
         then:
-        1 * fileService.readTemperatureData(_ as String) >> temperatureData
+        response.size() > 0
     }
 }

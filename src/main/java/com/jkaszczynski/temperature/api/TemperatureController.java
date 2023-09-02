@@ -1,7 +1,7 @@
 package com.jkaszczynski.temperature.api;
 
 import com.jkaszczynski.temperature.api.dto.AverageTemperatureDto;
-import com.jkaszczynski.temperature.service.TemperatureFacade;
+import com.jkaszczynski.temperature.service.TemperatureService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,10 +16,10 @@ import java.util.List;
 @AllArgsConstructor
 public class TemperatureController {
 
-    private final TemperatureFacade temperatureFacade;
+    private final TemperatureService temperatureService;
 
     @GetMapping(path = "/temperature/average/{city}", produces = MediaType.APPLICATION_JSON_VALUE)
     List<AverageTemperatureDto> getAverageTemperature(@PathVariable String city) {
-        return temperatureFacade.getAverageTemperature(city);
+        return temperatureService.getAverageTemperature(city);
     }
 }

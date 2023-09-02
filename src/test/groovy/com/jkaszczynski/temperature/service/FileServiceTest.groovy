@@ -13,17 +13,19 @@ class FileServiceTest extends Specification {
     @Autowired
     FileService fileService
 
-    def "should return map of yearly temperatures"() {
+    def "should return map of cities and their yearly temperatures"() {
         when:
-        def response = fileService.readTemperatureData("Warszawa")
+        def response = fileService.readTemperatureData()
 
         then:
         response
         response.size() > 0
-        response.get("2018").days() > 0
-        response.get("2019").days() > 0
-        response.get("2018").temperatureSum() > 0
-        response.get("2019").temperatureSum() > 0
+        response.get("Warszawa")
+        response.get("Warszawa").temperatureByYear()
+        response.get("Warszawa").temperatureByYear().size() > 0
+        response.get("Warszawa").temperatureByYear().get("2019")
+        response.get("Warszawa").temperatureByYear().get("2019").temperatureSum() > 0
+        response.get("Warszawa").temperatureByYear().get("2019").days() > 0
     }
 
     def "should return last modified time of file"() {

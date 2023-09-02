@@ -2,8 +2,8 @@ package com.jkaszczynski.temperature.api
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.jkaszczynski.configuration.CacheConfig
+import com.jkaszczynski.temperature.handler.CacheHandler
 import com.jkaszczynski.temperature.service.FileService
-import com.jkaszczynski.temperature.service.TemperatureFacade
 import com.jkaszczynski.temperature.service.TemperatureService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -17,8 +17,8 @@ import spock.lang.Specification
 
 @AutoConfigureMockMvc
 @EnableWebMvc
-@SpringBootTest(classes = [TemperatureController.class, FileService.class,
-        TemperatureFacade.class, TemperatureService.class, CacheConfig.class])
+@SpringBootTest(classes = [TemperatureController.class, FileService.class, TemperatureService.class,
+        CacheConfig.class, CacheHandler.class])
 class TemperatureControllerTest extends Specification {
 
     @Autowired
