@@ -31,7 +31,7 @@ public class CacheHandler {
         log.info("Finished pre populating data into cache.");
     }
 
-    @Scheduled(fixedDelay = 60, timeUnit = TimeUnit.SECONDS)
+    @Scheduled(fixedDelay = 60, timeUnit = TimeUnit.SECONDS, initialDelay = 60)
     public void updateCacheIfChangesInFile() {
         if (lastModifiedTemperatureFile != fileService.getLastModified()) {
             log.info("Temperature file has changed. Updating cache data...");
