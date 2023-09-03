@@ -4,12 +4,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -19,12 +20,9 @@ public class FileService {
     private String filePath;
 
     public Map<String, CityTemperatureData> readTemperatureData() {
-        Map<String, CityTemperatureData> citiesTemperatures = new HashMap<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                readLine(line, citiesTemperatures);
-            }
+        Map<String, CityTemperatureData> citiesTemperatures = new ConcurrentHashMap<>();
+        try (Stream<String> lines = Files.lines(Path.of(filePath))) {
+            lines.parallel().forEach(l -> readLine(l, citiesTemperatures));
         } catch (IOException e) {
             throw new RuntimeException("Error with reading temperature data file: " + e.getMessage());
         }
@@ -35,7 +33,7 @@ public class FileService {
         try {
             String[] fields = line.split(";");
             String city = fields[0];
-            temperatureByYear.computeIfAbsent(city, (__) -> new CityTemperatureData(new HashMap<>()));
+            temperatureByYear.computeIfAbsent(city, (__) -> new CityTemperatureData(new ConcurrentHashMap<>()));
             updateTemperatureData(fields, temperatureByYear.get(city).temperatureByYear());
         } catch (Exception e) {
             log.warn("Could not read malformed line: " + e.getMessage());
